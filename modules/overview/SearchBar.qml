@@ -19,9 +19,10 @@ RowLayout {
         searchInput.forceActiveFocus();
     }
 
-    enum SearchPrefixType { Action, App, Clipboard, Emojis, Symbols, Math, ShellCommand, WebSearch, Keybinds, SpotifyPlay, SpotifyQueue, DefaultSearch }
+    enum SearchPrefixType { Action, App, Clipboard, Emojis, Symbols, Math, ShellCommand, WebSearch, Keybinds, SpotifyPlay, SpotifyQueue, AskAI, DefaultSearch }
 
     property var searchPrefixType: {
+        if (/^(?:gpt|claude|agy)\b/i.test(root.searchingText.trim())) return SearchBar.SearchPrefixType.AskAI;
         if (/^[pP]\s+/.test(root.searchingText)) return SearchBar.SearchPrefixType.SpotifyPlay;
         if (/^[qQ]\s+/.test(root.searchingText)) return SearchBar.SearchPrefixType.SpotifyQueue;
         if (root.searchingText.startsWith(Config.options.search.prefix.action)) return SearchBar.SearchPrefixType.Action;
@@ -41,6 +42,7 @@ RowLayout {
         Layout.alignment: Qt.AlignVCenter
         iconSize: Appearance.font.pixelSize.huge
         shape: switch(root.searchPrefixType) {
+            case SearchBar.SearchPrefixType.AskAI: return MaterialShape.Shape.SoftBurst;
             case SearchBar.SearchPrefixType.SpotifyPlay: return MaterialShape.Shape.SoftBurst;
             case SearchBar.SearchPrefixType.SpotifyQueue: return MaterialShape.Shape.Clover4Leaf;
             case SearchBar.SearchPrefixType.Action: return MaterialShape.Shape.Pill;
@@ -55,6 +57,7 @@ RowLayout {
             default: return MaterialShape.Shape.Cookie7Sided;
         }
         text: switch (root.searchPrefixType) {
+            case SearchBar.SearchPrefixType.AskAI: return "neurology";
             case SearchBar.SearchPrefixType.SpotifyPlay: return "play_circle";
             case SearchBar.SearchPrefixType.SpotifyQueue: return "queue_music";
             case SearchBar.SearchPrefixType.Action: return "folder_open";

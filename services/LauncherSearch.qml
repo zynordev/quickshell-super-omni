@@ -536,6 +536,57 @@ Singleton {
                     }
                 });
             }).filter(Boolean);
+        } else if (/^(?:gpt|claude|agy)\b/i.test(root.query.trim())) {
+            // Ask AI direct from launcher: gpt <prompt>, claude <prompt>, agy <prompt>
+            const fullTrimmed = root.query.trim();
+            const firstSpace = fullTrimmed.indexOf(" ");
+            const prefix = (firstSpace !== -1 ? fullTrimmed.slice(0, firstSpace) : fullTrimmed).toLowerCase();
+            const prompt = firstSpace !== -1 ? fullTrimmed.slice(firstSpace + 1).trim() : "";
+
+            let targetModel = "gemini-4-argon-medium";
+            let modelLabel = "Gemini 4 Argon";
+
+            if (prefix === "gpt") {
+                targetModel = "gpt-oss-120b-medium";
+                modelLabel = "GPT-OSS 120B";
+            } else if (prefix === "claude") {
+                targetModel = "claude-sonnet-5-5-high";
+                modelLabel = "Claude Sonnet 5.5";
+            } else if (prefix === "agy") {
+                targetModel = "gemini-4-argon-medium";
+                modelLabel = "Antigravity (Argon)";
+            }
+
+            if (!prompt) {
+                return [resultComp.createObject(null, {
+                    name: `${prefix} [sorunuz]`,
+                    comment: `🤖 ${modelLabel} ile yanıt almak için sorunuzu yazın`,
+                    verb: "Sor",
+                    type: "AI Asistanı",
+                    iconName: "neurology",
+                    iconType: LauncherSearchResult.IconType.Material,
+                    execute: () => {
+                        Ai.setModel(targetModel, false, true);
+                        GlobalStates.sidebarLeftOpen = true;
+                    }
+                })];
+            }
+
+            return [resultComp.createObject(null, {
+                name: prompt,
+                comment: `🤖 ${modelLabel} ile sor ve sol panelde aç`,
+                verb: "Sor",
+                type: "AI Asistanı",
+                iconName: "neurology",
+                iconType: LauncherSearchResult.IconType.Material,
+                execute: () => {
+                    Ai.setModel(targetModel, false, true);
+                    GlobalStates.sidebarLeftOpen = true;
+                    Qt.callLater(() => {
+                        Ai.sendUserMessage(prompt);
+                    });
+                }
+            })];
         } else if (/^[pqPQ](\s+.*)?$/.test(root.query)) {
             // Spotify Play (p <song>) or Queue (q <song>)
             const isPlay = root.query[0].toLowerCase() === "p";

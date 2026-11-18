@@ -28,7 +28,11 @@
 - Remembers past Spotify queries, shell commands, web searches, and opened URLs in `~/.cache/qs_launcher_history.json`.
 - Displays usage count and auto-suggests past actions as you type.
 
-### 5. 🤖 Native Antigravity (`agy`) Multi-Agent Sidebar
+### 5. 🤖 Native Antigravity (`agy`) Multi-Agent Sidebar & Direct Launcher Queries
+- **Direct Launcher AI Questions:** Ask AI straight from the omni-search bar:
+  - `gpt <prompt>`: Automatically switches to **GPT-OSS 120B**, opens the AI sidebar and streams the response.
+  - `claude <prompt>`: Automatically switches to **Claude Sonnet 5.5**, opens the AI sidebar and streams the response.
+  - `agy <prompt>`: Uses **Gemini 4 Argon** with full local Antigravity capabilities.
 - Replaces generic cloud LLM APIs with your host's local **Antigravity CLI (`agy`)**.
 - Access models directly without per-request API keys:
   - `gemini-4-argon-medium` / `high` / `low`
