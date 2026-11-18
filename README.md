@@ -19,10 +19,10 @@
 - **`q <song>`:** Add tracks directly to the playback queue without interrupting current music (via local Spicetify bridge extension and queue daemon).
 - **`p` (empty):** Instant history of recently played tracks right at the top of the launcher.
 
-### 3. 🌐 Zen Browser Smart Domain Launch & Autocomplete
-- Direct domain inputs (e.g. `bilgicoderteam.tr`, `github.com/zynordev`) bypass Google and open immediately in **Zen Browser**.
-- General queries fallback to Google Search inside Zen Browser.
-- **Live Zen History Search:** Connects to Zen Browser's `places.sqlite` in read-only immutable mode. Start typing any keyword (e.g. `git`, `chat`) to see your most visited websites and page titles instantly.
+### 3. 🌐 Dynamic Default Browser Launcher & Autocomplete
+- Direct domain inputs (e.g. `bilgicoderteam.tr`, `github.com/zynordev`) bypass search engines and open immediately in your system's **default web browser** (dynamically detected via `xdg-settings` / desktop associations: Zen Browser, Firefox, Chrome, Brave, etc.).
+- General search queries fallback to web search using your default browser.
+- **Universal Browser History Autocomplete:** Reads places databases (`places.sqlite`) across modern browsers (Zen, Firefox, Librewolf, Waterfox) in immutable mode. Typing any keyword (e.g. `git`, `chat`) instantly presents your most visited websites and page titles.
 
 ### 4. 🧠 Unified Launcher Activity History
 - Remembers past Spotify queries, shell commands, web searches, and opened URLs in `~/.cache/qs_launcher_history.json`.

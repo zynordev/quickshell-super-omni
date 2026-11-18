@@ -35,50 +35,54 @@ def notify(title: str, body: str, icon: str = "spotify"):
 # ============================================================================
 
 HISTORY_FILE = Path(HOME) / ".cache" / "qs_launcher_history.json"
-ZEN_PLACES_GLOB = os.path.expanduser("~/.config/zen/*/places.sqlite")
 
 
-def record_history(item_type: str, text: str, data: str = ""):
-    text = text.strip()
-    if not text:
-        return
-    HISTORY_FILE.parent.mkdir(parents=True, exist_ok=True)
-    history = []
-    if HISTORY_FILE.exists():
-        try:
-            history = json.loads(HISTORY_FILE.read_text())
-        except Exception:
-            history = []
-
-    # Update or insert
-    updated = False
-    for item in history:
-        if item.get("type") == item_type and item.get("text") == text:
-            item["count"] = item.get("count", 1) + 1
-            item["ts"] = time.time()
-            if data:
-                item["data"] = data
-            updated = True
-            break
-    if not updated:
-        history.append({
-            "type": item_type,
-            "text": text,
-            "data": data,
-            "count": 1,
-            "ts": time.time(),
-        })
-
-    # Keep history sorted by ts desc, max 200 items
-    history.sort(key=lambda x: x.get("ts", 0), reverse=True)
-    history = history[:200]
+def get_default_browser_cmd() -> list[str]:
+    """Dynamically determine the system's default browser executable."""
+    import shutil
     try:
-        HISTORY_FILE.write_text(json.dumps(history, ensure_ascii=False))
+        out = subprocess.check_output(
+            ["xdg-settings", "get", "default-web-browser"],
+            text=True,
+            stderr=subprocess.DEVNULL,
+        ).strip()
+        if out:
+            for d in [os.path.expanduser("~/.local/share/applications"), "/usr/share/applications"]:
+                p = os.path.join(d, out)
+                if os.path.exists(p):
+                    with open(p, "r", encoding="utf-8", errors="ignore") as f:
+                        for line in f:
+                            if line.startswith("Exec="):
+                                exe = line[5:].strip().split()[0]
+                                if shutil.which(exe):
+                                    return [exe]
     except Exception:
         pass
 
+    # Well-known browser binaries
+    for b in ["zen-browser", "google-chrome-stable", "firefox", "brave", "chromium", "microsoft-edge-stable"]:
+        if shutil.which(b):
+            return [b]
 
-def search_zen_history(query: str, limit: int = 5) -> list[dict]:
+    return ["xdg-open"]
+
+
+def get_browser_name() -> str:
+    cmd = get_default_browser_cmd()[0].lower()
+    if "zen" in cmd:
+        return "Zen Browser"
+    if "chrome" in cmd:
+        return "Google Chrome"
+    if "firefox" in cmd:
+        return "Firefox"
+    if "brave" in cmd:
+        return "Brave"
+    if "chromium" in cmd:
+        return "Chromium"
+    return "Varsayılan Tarayıcı"
+
+
+def search_browser_history(query: str, limit: int = 6) -> list[dict]:
     import glob
     import sqlite3
 
@@ -86,35 +90,52 @@ def search_zen_history(query: str, limit: int = 5) -> list[dict]:
     if not query:
         return []
 
-    db_paths = glob.glob(ZEN_PLACES_GLOB)
-    if not db_paths:
-        return []
+    patterns = [
+        os.path.expanduser("~/.config/zen/*/places.sqlite"),
+        os.path.expanduser("~/.mozilla/firefox/*/places.sqlite"),
+        os.path.expanduser("~/.config/mozilla/firefox/*/places.sqlite"),
+        os.path.expanduser("~/.librewolf/*/places.sqlite"),
+        os.path.expanduser("~/.waterfox/*/places.sqlite"),
+    ]
+
+    db_paths = []
+    for pat in patterns:
+        for p in glob.glob(pat):
+            if not p.endswith(".bak"):
+                db_paths.append(p)
 
     results = []
-    try:
-        uri = f"file:{db_paths[0]}?immutable=1"
-        conn = sqlite3.connect(uri, uri=True, timeout=2)
-        cur = conn.cursor()
-        like_q = f"%{query}%"
-        cur.execute(
-            """
-            SELECT url, title, visit_count
-            FROM moz_places
-            WHERE url LIKE 'http%' AND (url LIKE ? OR title LIKE ?)
-            ORDER BY visit_count DESC LIMIT ?
-            """,
-            (like_q, like_q, limit),
-        )
-        for url, title, count in cur.fetchall():
-            results.append({
-                "type": "zen_history",
-                "url": url,
-                "title": title or url,
-                "count": count,
-            })
-    except Exception:
-        pass
-    return results
+    seen = set()
+    like_q = f"%{query}%"
+
+    for db_path in db_paths:
+        try:
+            uri = f"file:{db_path}?immutable=1"
+            conn = sqlite3.connect(uri, uri=True, timeout=2)
+            cur = conn.cursor()
+            cur.execute(
+                """
+                SELECT url, title, visit_count
+                FROM moz_places
+                WHERE url LIKE 'http%' AND (url LIKE ? OR title LIKE ?)
+                ORDER BY visit_count DESC LIMIT ?
+                """,
+                (like_q, like_q, limit),
+            )
+            for url, title, count in cur.fetchall():
+                if url not in seen:
+                    seen.add(url)
+                    results.append({
+                        "type": "browser_url",
+                        "url": url,
+                        "title": title or url,
+                        "count": count,
+                    })
+            if len(results) >= limit:
+                break
+        except Exception:
+            pass
+    return results[:limit]
 
 
 def get_spotify_history(is_play: bool = True, query: str = "") -> list[dict]:
@@ -175,31 +196,33 @@ def search_suggestions(raw_query: str) -> list[dict]:
     # Sort launcher history matches by count and recency
     suggestions.sort(key=lambda x: (x.get("count", 1), x.get("ts", 0)), reverse=True)
 
-    # 2. Add Zen Browser history matching query
-    zen_items = search_zen_history(q, limit=6)
-    for z in zen_items:
-        key = ("url", z["url"])
+    # 2. Add browser history matching query
+    browser_items = search_browser_history(q, limit=6)
+    for b in browser_items:
+        key = ("url", b["url"])
         if key not in seen:
             seen.add(key)
             suggestions.append({
-                "type": "zen_url",
-                "text": z["url"],
-                "data": z["title"],
-                "count": z["count"],
+                "type": "browser_url",
+                "text": b["url"],
+                "data": b["title"],
+                "count": b["count"],
             })
 
     return suggestions[:8]
 
 
-def open_zen_url(url: str):
+def open_browser_url(url: str):
     record_history("url", url, url)
-    subprocess.Popen(["/home/halil/.local/bin/zen-browser", url], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    cmd = get_default_browser_cmd() + [url]
+    subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
-def open_zen_search(query: str):
+def open_browser_search(query: str):
     record_history("search", query)
     url = f"https://www.google.com/search?q={urllib.parse.quote(query)}"
-    subprocess.Popen(["/home/halil/.local/bin/zen-browser", url], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    cmd = get_default_browser_cmd() + [url]
+    subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
 def run_shell_command(cmd: str):
@@ -744,10 +767,12 @@ def main():
         print(json.dumps(search_suggestions(arg), ensure_ascii=False))
     elif cmd == "record":
         record_history(arg, arg2, sys.argv[4] if len(sys.argv) > 4 else "")
-    elif cmd == "open-zen-url":
-        open_zen_url(arg)
-    elif cmd == "open-zen-search":
-        open_zen_search(arg)
+    elif cmd == "open-zen-url" or cmd == "open-url":
+        open_browser_url(arg)
+    elif cmd == "open-zen-search" or cmd == "open-search":
+        open_browser_search(arg)
+    elif cmd == "browser-name":
+        print(get_browser_name())
     elif cmd == "run-shell":
         run_shell_command(arg)
 

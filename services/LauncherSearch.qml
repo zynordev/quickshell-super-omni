@@ -711,14 +711,14 @@ Singleton {
         });
         const webSearchResultObject = resultComp.createObject(null, {
             name: StringUtils.cleanPrefix(root.query, Config.options.search.prefix.webSearch),
-            comment: "🌐 Zen Browser ile Google'da Ara",
+            comment: "🌐 Varsayılan Tarayıcı ile Google'da Ara",
             verb: Translation.tr("Search"),
             type: Translation.tr("Web search"),
             iconName: 'travel_explore',
             iconType: LauncherSearchResult.IconType.Material,
             execute: () => {
                 let query = StringUtils.cleanPrefix(root.query, Config.options.search.prefix.webSearch).trim();
-                Quickshell.execDetached(["python3", root.helperScriptPath, "open-zen-search", query]);
+                Quickshell.execDetached(["python3", root.helperScriptPath, "open-search", query]);
             }
         });
         const launcherActionObjects = root.allActions.map(action => {
@@ -780,7 +780,7 @@ Singleton {
             return fileItems.concat(launcherActionObjects);
         }
 
-        //////// Direct domain / URL -> open in Zen Browser /////////
+        //////// Direct domain / URL -> open in Default Browser /////////
         const trimmedQuery = root.query.trim();
         const hasScheme = /^https?:\/\//i.test(trimmedQuery);
         const domainMatch = /^(?:https?:\/\/)?(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+([a-z]{2,24})(?::\d+)?(?:[\/?#]\S*)?$/i.exec(trimmedQuery);
@@ -791,13 +791,13 @@ Singleton {
             const targetUrl = hasScheme ? trimmedQuery : "https://" + trimmedQuery;
             domainResultObject = resultComp.createObject(null, {
                 name: trimmedQuery,
-                comment: "🌐 Zen Browser'da doğrudan aç",
+                comment: "🌐 Tarayıcıda doğrudan aç",
                 verb: Translation.tr("Open"),
                 type: "Web sitesi",
                 iconName: 'language',
                 iconType: LauncherSearchResult.IconType.Material,
                 execute: () => {
-                    Quickshell.execDetached(["python3", root.helperScriptPath, "open-zen-url", targetUrl]);
+                    Quickshell.execDetached(["python3", root.helperScriptPath, "open-url", targetUrl]);
                 }
             });
         }
@@ -807,20 +807,20 @@ Singleton {
         if (domainResultObject)
             result.push(domainResultObject);
 
-        //////// Smart Suggestions (Zen Browser History + Launcher History: songs, sites, searches, commands) /////////
+        //////// Smart Suggestions (Browser History + Launcher History: songs, sites, searches, commands) /////////
         if (root.lastSuggestionQuery === trimmedQuery.toLowerCase() && root.smartSuggestions.length > 0) {
             for (let i = 0; i < root.smartSuggestions.length; i++) {
                 const s = root.smartSuggestions[i];
-                if (s.type === "zen_url" || s.type === "url") {
+                if (s.type === "zen_url" || s.type === "browser_url" || s.type === "url") {
                     result.push(resultComp.createObject(null, {
                         name: s.text,
-                        comment: (s.data ? `${s.data} • ` : "") + "🌐 Zen Geçmişi (" + (s.count || 1) + " ziyaret)",
+                        comment: (s.data ? `${s.data} • ` : "") + "🌐 Tarayıcı Geçmişi (" + (s.count || 1) + " ziyaret)",
                         verb: "Aç",
                         type: "Web sitesi",
                         iconName: "history",
                         iconType: LauncherSearchResult.IconType.Material,
                         execute: () => {
-                            Quickshell.execDetached(["python3", root.helperScriptPath, "open-zen-url", s.text]);
+                            Quickshell.execDetached(["python3", root.helperScriptPath, "open-url", s.text]);
                         }
                     }));
                 } else if (s.type === "spotify_play") {
