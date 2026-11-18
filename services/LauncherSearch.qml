@@ -536,8 +536,8 @@ Singleton {
                     }
                 });
             }).filter(Boolean);
-        } else if (/^(?:gpt|claude|agy)\b/i.test(root.query.trim())) {
-            // Ask AI direct from launcher: gpt <prompt>, claude <prompt>, agy <prompt>
+        } else if (/^(?:gpt|chatgpt|claude|agy)\b/i.test(root.query.trim())) {
+            // Ask AI direct from launcher: gpt <prompt>, chatgpt <prompt>, claude <prompt>, agy <prompt>
             const fullTrimmed = root.query.trim();
             const firstSpace = fullTrimmed.indexOf(" ");
             const prefix = (firstSpace !== -1 ? fullTrimmed.slice(0, firstSpace) : fullTrimmed).toLowerCase();
@@ -571,18 +571,38 @@ Singleton {
                         Quickshell.execDetached(["python3", root.helperScriptPath, "open-claude", prompt]);
                     }
                 })];
+            } else if (prefix === "gpt" || prefix === "chatgpt") {
+                if (!prompt) {
+                    return [resultComp.createObject(null, {
+                        name: "ChatGPT Desktop",
+                        comment: "OpenAI ChatGPT masaüstü uygulamasını aç",
+                        verb: "Aç",
+                        type: "Uygulama",
+                        iconName: "chatgpt",
+                        iconType: LauncherSearchResult.IconType.System,
+                        execute: () => {
+                            GlobalStates.overviewOpen = false;
+                            Quickshell.execDetached(["python3", root.helperScriptPath, "open-chatgpt"]);
+                        }
+                    })];
+                }
+
+                return [resultComp.createObject(null, {
+                    name: prompt,
+                    comment: "OpenAI ChatGPT uygulamasında aç ve sor",
+                    verb: "ChatGPT'de Aç",
+                    type: "AI Asistanı",
+                    iconName: "chatgpt",
+                    iconType: LauncherSearchResult.IconType.System,
+                    execute: () => {
+                        GlobalStates.overviewOpen = false;
+                        Quickshell.execDetached(["python3", root.helperScriptPath, "open-chatgpt", prompt]);
+                    }
+                })];
             }
 
             let targetModel = "gemini-4-argon-medium";
-            let modelLabel = "Gemini 4 Argon";
-
-            if (prefix === "gpt") {
-                targetModel = "gpt-oss-120b-medium";
-                modelLabel = "GPT-OSS 120B";
-            } else if (prefix === "agy") {
-                targetModel = "gemini-4-argon-medium";
-                modelLabel = "Antigravity (Argon)";
-            }
+            let modelLabel = "Antigravity (Argon)";
 
             if (!prompt) {
                 return [resultComp.createObject(null, {

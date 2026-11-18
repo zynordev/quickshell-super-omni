@@ -22,7 +22,7 @@ RowLayout {
     enum SearchPrefixType { Action, App, Clipboard, Emojis, Symbols, Math, ShellCommand, WebSearch, Keybinds, SpotifyPlay, SpotifyQueue, AskAI, DefaultSearch }
 
     property var searchPrefixType: {
-        if (/^(?:gpt|claude|agy)\b/i.test(root.searchingText.trim())) return SearchBar.SearchPrefixType.AskAI;
+        if (/^(?:gpt|chatgpt|claude|agy)\b/i.test(root.searchingText.trim())) return SearchBar.SearchPrefixType.AskAI;
         if (/^[pP]\s+/.test(root.searchingText)) return SearchBar.SearchPrefixType.SpotifyPlay;
         if (/^[qQ]\s+/.test(root.searchingText)) return SearchBar.SearchPrefixType.SpotifyQueue;
         if (root.searchingText.startsWith(Config.options.search.prefix.action)) return SearchBar.SearchPrefixType.Action;

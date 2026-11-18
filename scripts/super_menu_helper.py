@@ -255,6 +255,31 @@ def open_claude_app(prompt: str = ""):
         subprocess.Popen(["gtk-launch", "com.anthropic.Claude"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
+def open_chatgpt_app(prompt: str = ""):
+    prompt = prompt.strip()
+    if prompt:
+        record_history("gpt", prompt, "ChatGPT Asistanı")
+        try:
+            subprocess.run(["wl-copy", prompt], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        except Exception:
+            pass
+        encoded_prompt = urllib.parse.quote(prompt)
+        url = f"https://chatgpt.com/?q={encoded_prompt}"
+        try:
+            subprocess.Popen(["chatgpt", url], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            return
+        except Exception:
+            try:
+                subprocess.Popen(["xdg-open", url], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                return
+            except Exception:
+                pass
+    try:
+        subprocess.Popen(["chatgpt"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except Exception:
+        subprocess.Popen(["gtk-launch", "chatgpt"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
 SHORTCUT_DIRS = {
     "home": "/home/halil",
     "tmp": "/tmp",
@@ -802,6 +827,8 @@ def main():
         run_shell_command(arg)
     elif cmd == "open-claude":
         open_claude_app(arg)
+    elif cmd == "open-chatgpt":
+        open_chatgpt_app(arg)
 
 
 if __name__ == "__main__":

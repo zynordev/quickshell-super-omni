@@ -30,9 +30,9 @@
 
 ### 5. 🤖 Native Antigravity (`agy`) Multi-Agent Sidebar & Direct AI Shortcuts
 - **Direct Launcher AI Questions & App Launchers:**
-  - `gpt <prompt>`: Automatically selects **GPT-OSS 120B**, opens the AI sidebar and streams the response.
+  - `gpt <prompt>` or `chatgpt <prompt>`: Opens the native **ChatGPT Desktop** application (`chatgpt`), copies the prompt to the clipboard and navigates directly with pre-filled query.
   - `claude <prompt>`: Opens the native **Claude Desktop** application (`com.anthropic.Claude`), copies the prompt to the clipboard and navigates directly to a new chat with pre-filled query.
-  - `agy <prompt>`: Uses **Gemini 4 Argon** with full local Antigravity capabilities in the sidebar.
+  - `agy <prompt>`: Uses **Gemini 4 Argon** with full local Antigravity capabilities directly in the Quickshell sidebar.
 - Replaces generic cloud LLM APIs with your host's local **Antigravity CLI (`agy`)**.
 - Access models directly without per-request API keys:
   - `gemini-4-argon-medium` / `high` / `low`
