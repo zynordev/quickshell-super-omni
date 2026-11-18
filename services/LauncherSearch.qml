@@ -590,7 +590,7 @@ Singleton {
 
                 return [resultComp.createObject(null, {
                     name: prompt,
-                    comment: "OpenAI ChatGPT uygulamasında aç ve sor",
+                    comment: "OpenAI ChatGPT uygulamasını aç (soru panoda hazır)",
                     verb: "ChatGPT'de Aç",
                     type: "AI Asistanı",
                     iconName: "chatgpt",

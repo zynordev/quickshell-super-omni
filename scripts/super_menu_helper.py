@@ -302,13 +302,7 @@ def open_chatgpt_app(prompt: str = ""):
             subprocess.run(["wl-copy", prompt], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         except Exception:
             pass
-        encoded_prompt = urllib.parse.quote(prompt)
-        url = f"https://chatgpt.com/?q={encoded_prompt}"
-        try:
-            subprocess.Popen(["gtk-launch", "chatgpt", url], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            return
-        except Exception:
-            pass
+        notify("ChatGPT", f"Soru panoya kopyalandı ({prompt[:30]}...)", "chatgpt")
     try:
         subprocess.Popen(["gtk-launch", "chatgpt"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         return
