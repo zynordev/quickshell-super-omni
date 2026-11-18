@@ -230,6 +230,31 @@ def run_shell_command(cmd: str):
     subprocess.Popen(["bash", "-c", cmd], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
+def open_claude_app(prompt: str = ""):
+    prompt = prompt.strip()
+    if prompt:
+        record_history("claude", prompt, "Claude Asistanı")
+        try:
+            subprocess.run(["wl-copy", prompt], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        except Exception:
+            pass
+        encoded_prompt = urllib.parse.quote(prompt)
+        url = f"claude://claude.ai/new?q={encoded_prompt}"
+        try:
+            subprocess.Popen(["claude-desktop", url], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            return
+        except Exception:
+            try:
+                subprocess.Popen(["xdg-open", url], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                return
+            except Exception:
+                pass
+    try:
+        subprocess.Popen(["claude-desktop"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except Exception:
+        subprocess.Popen(["gtk-launch", "com.anthropic.Claude"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
 SHORTCUT_DIRS = {
     "home": "/home/halil",
     "tmp": "/tmp",
@@ -775,6 +800,8 @@ def main():
         print(get_browser_name())
     elif cmd == "run-shell":
         run_shell_command(arg)
+    elif cmd == "open-claude":
+        open_claude_app(arg)
 
 
 if __name__ == "__main__":

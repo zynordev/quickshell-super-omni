@@ -543,15 +543,42 @@ Singleton {
             const prefix = (firstSpace !== -1 ? fullTrimmed.slice(0, firstSpace) : fullTrimmed).toLowerCase();
             const prompt = firstSpace !== -1 ? fullTrimmed.slice(firstSpace + 1).trim() : "";
 
+            if (prefix === "claude") {
+                if (!prompt) {
+                    return [resultComp.createObject(null, {
+                        name: "Claude Desktop",
+                        comment: "Anthropic Claude masaüstü uygulamasını aç",
+                        verb: "Aç",
+                        type: "Uygulama",
+                        iconName: "claude-desktop",
+                        iconType: LauncherSearchResult.IconType.System,
+                        execute: () => {
+                            GlobalStates.overviewOpen = false;
+                            Quickshell.execDetached(["python3", root.helperScriptPath, "open-claude"]);
+                        }
+                    })];
+                }
+
+                return [resultComp.createObject(null, {
+                    name: prompt,
+                    comment: "Anthropic Claude uygulamasında aç ve sor",
+                    verb: "Claude'da Aç",
+                    type: "AI Asistanı",
+                    iconName: "claude-desktop",
+                    iconType: LauncherSearchResult.IconType.System,
+                    execute: () => {
+                        GlobalStates.overviewOpen = false;
+                        Quickshell.execDetached(["python3", root.helperScriptPath, "open-claude", prompt]);
+                    }
+                })];
+            }
+
             let targetModel = "gemini-4-argon-medium";
             let modelLabel = "Gemini 4 Argon";
 
             if (prefix === "gpt") {
                 targetModel = "gpt-oss-120b-medium";
                 modelLabel = "GPT-OSS 120B";
-            } else if (prefix === "claude") {
-                targetModel = "claude-sonnet-5-5-high";
-                modelLabel = "Claude Sonnet 5.5";
             } else if (prefix === "agy") {
                 targetModel = "gemini-4-argon-medium";
                 modelLabel = "Antigravity (Argon)";
