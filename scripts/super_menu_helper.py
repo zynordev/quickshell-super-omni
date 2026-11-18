@@ -37,6 +37,44 @@ def notify(title: str, body: str, icon: str = "spotify"):
 HISTORY_FILE = Path(HOME) / ".cache" / "qs_launcher_history.json"
 
 
+def record_history(item_type: str, text: str, data: str = ""):
+    text = text.strip()
+    if not text:
+        return
+    try:
+        HISTORY_FILE.parent.mkdir(parents=True, exist_ok=True)
+        history = []
+        if HISTORY_FILE.exists():
+            try:
+                history = json.loads(HISTORY_FILE.read_text())
+            except Exception:
+                history = []
+
+        updated = False
+        for item in history:
+            if item.get("type") == item_type and item.get("text") == text:
+                item["count"] = item.get("count", 1) + 1
+                item["ts"] = time.time()
+                if data:
+                    item["data"] = data
+                updated = True
+                break
+        if not updated:
+            history.append({
+                "type": item_type,
+                "text": text,
+                "data": data,
+                "count": 1,
+                "ts": time.time(),
+            })
+
+        history.sort(key=lambda x: x.get("ts", 0), reverse=True)
+        history = history[:200]
+        HISTORY_FILE.write_text(json.dumps(history, ensure_ascii=False))
+    except Exception:
+        pass
+
+
 def get_default_browser_cmd() -> list[str]:
     """Dynamically determine the system's default browser executable."""
     import shutil
@@ -241,18 +279,19 @@ def open_claude_app(prompt: str = ""):
         encoded_prompt = urllib.parse.quote(prompt)
         url = f"claude://claude.ai/new?q={encoded_prompt}"
         try:
-            subprocess.Popen(["claude-desktop", url], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.Popen(["gtk-launch", "com.anthropic.Claude", url], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             return
         except Exception:
-            try:
-                subprocess.Popen(["xdg-open", url], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                return
-            except Exception:
-                pass
+            pass
+    try:
+        subprocess.Popen(["gtk-launch", "com.anthropic.Claude"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        return
+    except Exception:
+        pass
     try:
         subprocess.Popen(["claude-desktop"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     except Exception:
-        subprocess.Popen(["gtk-launch", "com.anthropic.Claude"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        pass
 
 
 def open_chatgpt_app(prompt: str = ""):
@@ -266,18 +305,19 @@ def open_chatgpt_app(prompt: str = ""):
         encoded_prompt = urllib.parse.quote(prompt)
         url = f"https://chatgpt.com/?q={encoded_prompt}"
         try:
-            subprocess.Popen(["chatgpt", url], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.Popen(["gtk-launch", "chatgpt", url], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             return
         except Exception:
-            try:
-                subprocess.Popen(["xdg-open", url], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                return
-            except Exception:
-                pass
+            pass
+    try:
+        subprocess.Popen(["gtk-launch", "chatgpt"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        return
+    except Exception:
+        pass
     try:
         subprocess.Popen(["chatgpt"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     except Exception:
-        subprocess.Popen(["gtk-launch", "chatgpt"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        pass
 
 
 SHORTCUT_DIRS = {

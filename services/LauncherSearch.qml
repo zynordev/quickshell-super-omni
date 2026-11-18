@@ -568,6 +568,7 @@ Singleton {
                     iconType: LauncherSearchResult.IconType.System,
                     execute: () => {
                         GlobalStates.overviewOpen = false;
+                        Quickshell.clipboardText = prompt;
                         Quickshell.execDetached(["python3", root.helperScriptPath, "open-claude", prompt]);
                     }
                 })];
@@ -596,6 +597,7 @@ Singleton {
                     iconType: LauncherSearchResult.IconType.System,
                     execute: () => {
                         GlobalStates.overviewOpen = false;
+                        Quickshell.clipboardText = prompt;
                         Quickshell.execDetached(["python3", root.helperScriptPath, "open-chatgpt", prompt]);
                     }
                 })];
